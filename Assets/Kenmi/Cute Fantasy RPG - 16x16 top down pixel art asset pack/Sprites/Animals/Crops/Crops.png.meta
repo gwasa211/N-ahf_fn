@@ -2176,7 +2176,7 @@ TextureImporter:
         width: 112
         height: 432
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -2184,6 +2184,27 @@ TextureImporter:
       bones: []
       spriteID: e9e761616656c5a43a94bd3307d3c68e
       internalID: -1665966313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Crops_29
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 112
+        height: 432
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 72f3a2fda944bb74dba0732a0fcf347b
+      internalID: -804919388
       vertices: []
       indices: 
       edges: []

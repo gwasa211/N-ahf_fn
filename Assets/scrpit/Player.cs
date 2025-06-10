@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-
+using System.Collections;
 public class Player : MonoBehaviour
 {
     public float moveSpeed = 2f;
@@ -11,11 +11,9 @@ public class Player : MonoBehaviour
     public Sprite[] walkRight;
 
     // 대기 애니메이션
-    // 대기(Idle) 애니메이션
     public Sprite[] idleDown;
     public Sprite[] idleUp;
     public Sprite[] idleRight;
-
 
     // 칼 공격 애니메이션
     public Sprite[] swordDown;
@@ -31,21 +29,39 @@ public class Player : MonoBehaviour
     public GameObject arrowPrefab;
 
     public LayerMask enemyLayer;
-    public float attackRange = 1f;
-    public int swordDamage = 1;
     public float attackCooldown = 0.5f;
     public float shootCooldown = 0.5f;
 
     public float dashDistance = 2f;
     public float dashDuration = 0.15f;
-    public float invincibleTime = 0.3f;
     public float dodgeCooldown = 1f;
 
-    public float shootMoveSpeed = 3f; // 활 쏘는 중 이동 속도
+    public float shootMoveSpeed = 3f;
+    public float swordMoveSpeed = 3f;
 
-    public float swordMoveSpeed = 3f; // 칼 휘두를 때 이동 속도
+    // === 기본 스탯 ===
+    public int baseMaxHealth = 10;
+    public int baseSwordDamage = 3;
+    public float baseSwordRange = 1f;
+    public int baseBowDamage = 2;
+    public int baseArrowCount = 1;
+    public float baseDodgeInvincibleTime = 0.3f;
 
+    // === 업그레이드된 최종 스탯 ===
+    public int maxHealth;
+    public int swordDamage;
+    public float attackRange;
+    public int bowDamage;
+    public int arrowCount;
+    public float invincibleTime;
 
+    // === 업그레이드 인덱스 ===
+    public int swordDamageIndex;
+    public int swordRangeIndex;
+    public int bowDamageIndex;
+    public int arrowCountIndex;
+    public int maxHealthIndex;
+    public int dodgeTimeIndex;
 
     private Rigidbody2D rb;
     private Vector2 input;
@@ -63,12 +79,33 @@ public class Player : MonoBehaviour
     private bool isShooting = false;
     private bool isDodging = false;
 
+    public int currentHealth;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         currentAnim = walkDown;
+
+        RecalculateStats();
+        currentHealth = maxHealth;
+        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth); // UI 초기화
     }
+
+    public void RecalculateStats()
+    {
+        var mgr = UpgradeManager.Instance;
+
+        maxHealth = baseMaxHealth + (int)mgr.GetUpgradeValue(maxHealthIndex);
+        swordDamage = baseSwordDamage + (int)mgr.GetUpgradeValue(swordDamageIndex);
+        attackRange = baseSwordRange + mgr.GetUpgradeValue(swordRangeIndex);
+        bowDamage = baseBowDamage + (int)mgr.GetUpgradeValue(bowDamageIndex);
+        arrowCount = baseArrowCount + (int)mgr.GetUpgradeValue(arrowCountIndex);
+        invincibleTime = baseDodgeInvincibleTime + mgr.GetUpgradeValue(dodgeTimeIndex);
+
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // 마지막에 보정
+    }
+
 
     void Update()
     {
@@ -79,7 +116,7 @@ public class Player : MonoBehaviour
             HandleInput();
 
             if (!isShooting && !isAttacking)
-                HandleMovementAnim(); // 걷기 애니메이션은 공격/활 중 제외
+                HandleMovementAnim();
         }
 
         if (Input.GetKeyDown(KeyCode.S) && canAct)
@@ -90,6 +127,35 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.A) && canAct)
             StartCoroutine(Dodge());
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            GameManager.Instance.AddMoney(1000);
+        }
+
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            UseHealthSkill();
+        }
+
+    }
+
+    void UseHealthSkill()
+    {
+        int damage = 100;
+        currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        // UI 갱신
+        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
+
+        Debug.Log($"스킬 사용 - 체력 {damage} 감소. 현재 체력: {currentHealth}");
+
+        if (currentHealth <= 0)
+        {
+            Debug.Log("플레이어 사망");
+            // 사망 처리 로직이 있다면 여기에 추가
+        }
     }
 
 
@@ -97,23 +163,10 @@ public class Player : MonoBehaviour
     {
         if (!isDodging)
         {
-            float currentSpeed;
-
-            if (isAttacking)
-                currentSpeed = swordMoveSpeed;
-            else if (isShooting)
-                currentSpeed = shootMoveSpeed;
-            else
-                currentSpeed = moveSpeed;
-
+            float currentSpeed = isAttacking ? swordMoveSpeed : isShooting ? shootMoveSpeed : moveSpeed;
             rb.MovePosition(rb.position + input.normalized * currentSpeed * Time.fixedDeltaTime);
         }
     }
-
-
-
-
-
 
     void HandleInput()
     {
@@ -129,12 +182,10 @@ public class Player : MonoBehaviour
 
     void HandleMovementAnim()
     {
-        if (isAttacking || isShooting || isDodging)
-            return;
+        if (isAttacking || isShooting || isDodging) return;
 
         if (input.sqrMagnitude > 0.01f)
         {
-            // === 이동 방향이 가장 클 때만 방향 갱신 ===
             if (Mathf.Abs(input.y) > Mathf.Abs(input.x))
             {
                 currentDir = input.y > 0 ? Direction.Up : Direction.Down;
@@ -146,7 +197,6 @@ public class Player : MonoBehaviour
                 spriteRenderer.flipX = input.x < 0;
             }
 
-            // 이동 애니메이션 선택
             switch (currentDir)
             {
                 case Direction.Down: currentAnim = walkDown; break;
@@ -158,7 +208,6 @@ public class Player : MonoBehaviour
         }
         else
         {
-            // 대기 중엔 방향을 바꾸지 않음
             switch (currentDir)
             {
                 case Direction.Down: currentAnim = idleDown; spriteRenderer.flipX = false; break;
@@ -169,7 +218,6 @@ public class Player : MonoBehaviour
             Animate();
         }
     }
-
 
     void Animate()
     {
@@ -215,7 +263,7 @@ public class Player : MonoBehaviour
         isAttacking = false;
     }
 
-    System.Collections.IEnumerator ShootArrow()
+    IEnumerator ShootArrow()
     {
         isShooting = true;
 
@@ -224,38 +272,32 @@ public class Player : MonoBehaviour
 
         switch (currentDir)
         {
-            case Direction.Down:
-                bowAnim = bowDown;
-                shootDir = Vector2.down;
-                spriteRenderer.flipX = false;
-                break;
-
-            case Direction.Up:
-                bowAnim = bowUp;
-                shootDir = Vector2.up;
-                spriteRenderer.flipX = false;
-                break;
-
+            case Direction.Down: bowAnim = bowDown; shootDir = Vector2.down; spriteRenderer.flipX = false; break;
+            case Direction.Up: bowAnim = bowUp; shootDir = Vector2.up; spriteRenderer.flipX = false; break;
             case Direction.Right:
                 bowAnim = bowRight;
                 shootDir = spriteRenderer.flipX ? Vector2.left : Vector2.right;
                 break;
         }
 
+        // 애니메이션 재생 및 화살 발사 타이밍
         for (int i = 0; i < bowAnim.Length; i++)
         {
             spriteRenderer.sprite = bowAnim[i];
+
+            // 🎯 세 번째 프레임(인덱스 2)에서 발사
+            if (i == 2)
+            {
+                GameObject arrow = Instantiate(arrowPrefab, transform.position, Quaternion.identity);
+                arrow.GetComponent<Arrow>().SetDirection(shootDir);
+            }
+
             yield return new WaitForSeconds(frameRate);
         }
-
-        GameObject arrow = Instantiate(arrowPrefab, transform.position, Quaternion.identity);
-        arrow.GetComponent<Arrow>().SetDirection(shootDir);
 
         yield return new WaitForSeconds(shootCooldown);
         isShooting = false;
     }
-
-
 
 
     System.Collections.IEnumerator Dodge()
@@ -268,12 +310,11 @@ public class Player : MonoBehaviour
         {
             case Direction.Down: dodgeDir = Vector2.up; break;
             case Direction.Up: dodgeDir = Vector2.down; break;
-            case Direction.Right:
-                dodgeDir = spriteRenderer.flipX ? Vector2.right : Vector2.left;
-                break;
+            case Direction.Right: dodgeDir = spriteRenderer.flipX ? Vector2.right : Vector2.left; break;
         }
 
         gameObject.layer = LayerMask.NameToLayer("Invincible");
+        spriteRenderer.color = new Color32(0xCF, 0xCF, 0xCF, 0xFF);
 
         float elapsed = 0f;
         Vector2 startPos = rb.position;
@@ -287,12 +328,13 @@ public class Player : MonoBehaviour
         }
 
         rb.MovePosition(targetPos);
+        isDodging = false;
 
         yield return new WaitForSeconds(invincibleTime - dashDuration);
         gameObject.layer = LayerMask.NameToLayer("Player");
+        spriteRenderer.color = Color.white;
 
         yield return new WaitForSeconds(dodgeCooldown);
-        isDodging = false;
     }
 
     void OnDrawGizmosSelected()
@@ -300,4 +342,27 @@ public class Player : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
+
+    private IEnumerator DelayedInit()
+    {
+        while (UpgradeManager.Instance == null)
+            yield return null;
+
+        RecalculateStats();
+    }
+
+    public void TakeDamage(int amount)
+    {
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
+
+        if (currentHealth <= 0)
+        {
+            // 죽음 처리
+            Debug.Log("플레이어 사망");
+        }
+    }
+
 }

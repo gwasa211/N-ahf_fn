@@ -50,14 +50,14 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: player
-    uniqueID: 324882275
-    locked: 0
   - name: "\uC6B8\uD0C0\uB9AC"
     uniqueID: 3273416697
     locked: 0
   - name: "\uB18D\uC791\uBB3C \uC528\uC557"
     uniqueID: 454708557
+    locked: 0
+  - name: player
+    uniqueID: 324882275
     locked: 0
   - name: "\uB18D\uC791\uBB3C"
     uniqueID: 999498383
