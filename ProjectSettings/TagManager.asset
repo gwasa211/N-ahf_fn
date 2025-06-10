@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - Player
+  - Enemy
+  - Invincible
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: "\uC548\uBCF4\uC784"
+    uniqueID: 208452833
+    locked: 0
+  - name: "\uBB3C"
+    uniqueID: 4139563783
+    locked: 0
+  - name: "\uB545"
+    uniqueID: 2734210105
+    locked: 0
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: player
+    uniqueID: 324882275
+    locked: 0
+  - name: "\uC6B8\uD0C0\uB9AC"
+    uniqueID: 3273416697
+    locked: 0
+  - name: "\uB18D\uC791\uBB3C \uC528\uC557"
+    uniqueID: 454708557
+    locked: 0
+  - name: "\uB18D\uC791\uBB3C"
+    uniqueID: 999498383
+    locked: 0
+  - name: "\uBC30\uACBD \uB098\uBB34"
+    uniqueID: 886236167
+    locked: 0
