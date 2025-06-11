@@ -100,7 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
-  moveSpeed: 5
+  moveSpeed: 2
   target: {fileID: 0}
   walkSprites:
   - {fileID: 727065752, guid: 886d8b9f107c3e845bd8c9fd0d7b3552, type: 3}
