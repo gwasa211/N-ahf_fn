@@ -76,7 +76,7 @@ public class Enemy : MonoBehaviour
             spriteRenderer.sprite = deathSprites[i];
             yield return new WaitForSeconds(frameRate);
         }
-
+        MoneyManager.Instance.AddMoney(100);
         GameManager.Instance.AddMoney(100);
         Destroy(gameObject);
     }

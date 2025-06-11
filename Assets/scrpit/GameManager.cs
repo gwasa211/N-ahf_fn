@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,6 +15,9 @@ public class GameManager : MonoBehaviour
 
     [Header("체력 관련")]
     public TextMeshProUGUI healthText; // HP 텍스트
+
+    public GameObject gameOverUI;
+
 
     private void Awake()
     {
@@ -100,6 +104,24 @@ public class GameManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void PlayerDied()
+    {
+        Time.timeScale = 0f; // 게임 일시정지
+        gameOverUI.SetActive(true);
+    }
+
+    public void RetryGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu"); // 메인 메뉴 씬 이름에 맞게 수정
     }
 
 }

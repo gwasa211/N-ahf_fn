@@ -27,11 +27,7 @@ public class MainMenuButten : MonoBehaviour
     {
         startButton.GetComponent<Button>().onClick.AddListener(StartGame);
         exitButton.GetComponent<Button>().onClick.AddListener(ExitGame);
-        recordButton.GetComponent<Button>().onClick.AddListener(ToggleRecordPopup);
-        settingsButton.GetComponent<Button>().onClick.AddListener(ToggleSettingsPopup);
 
-        closeRecordButton.GetComponent<Button>().onClick.AddListener(CloseRecordPopup);
-        closeSettingsButton.GetComponent<Button>().onClick.AddListener(CloseSettingsPopup);
     }
 
     public void StartGame()
@@ -47,29 +43,6 @@ public class MainMenuButten : MonoBehaviour
 #endif
     }
 
-    private void ToggleRecordPopup()
-    {
-        if (recordPopup != null)
-            recordPopup.SetActive(!recordPopup.activeSelf);
-    }
-
-    private void ToggleSettingsPopup()
-    {
-        if (settingsPopup != null)
-            settingsPopup.SetActive(!settingsPopup.activeSelf);
-    }
-
-    void CloseRecordPopup()
-    {
-        recordPopup.SetActive(false);
-    }
-
-    void CloseSettingsPopup()
-    {
-        settingsPopup.SetActive(false);
-    }
-
-
-
-
+   
+   
 }
