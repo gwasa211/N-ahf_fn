@@ -108,6 +108,8 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.O))
             UseHealthSkill();
+
+        transform.rotation = Quaternion.identity;
     }
 
     void UseHealthSkill()
