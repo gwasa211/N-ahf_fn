@@ -11,11 +11,11 @@ GameObject:
   - component: {fileID: 6644146574511171806}
   - component: {fileID: 2346033070450172792}
   - component: {fileID: 2976409912688727012}
-  - component: {fileID: 7628657249968544441}
   - component: {fileID: 7073086340510881119}
+  - component: {fileID: -7638599069260186666}
   m_Layer: 7
   m_Name: Slime_0
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 6152354100134392334}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9.68, y: -14.65, z: 0}
+  m_LocalPosition: {x: -9.68, y: -14.598, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -100,8 +100,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
+  damage: 1
   moveSpeed: 2
-  target: {fileID: 0}
   walkSprites:
   - {fileID: 727065752, guid: 886d8b9f107c3e845bd8c9fd0d7b3552, type: 3}
   - {fileID: 1349870058, guid: 886d8b9f107c3e845bd8c9fd0d7b3552, type: 3}
@@ -120,9 +120,36 @@ MonoBehaviour:
   - {fileID: 1511663851, guid: 886d8b9f107c3e845bd8c9fd0d7b3552, type: 3}
   - {fileID: -1478687375, guid: 886d8b9f107c3e845bd8c9fd0d7b3552, type: 3}
   frameRate: 0.2
-  damage: 1
---- !u!60 &7628657249968544441
-PolygonCollider2D:
+  target: {fileID: 0}
+--- !u!50 &7073086340510881119
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6152354100134392334}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 1
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  m_Interpolate: 1
+  m_SleepingMode: 1
+  m_CollisionDetection: 1
+  m_Constraints: 0
+--- !u!61 &-7638599069260186666
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -153,7 +180,7 @@ PolygonCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.056909084, y: -0.27419806}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -163,50 +190,6 @@ PolygonCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.37756824, y: 0.13012123}
-      - {x: 0.25056648, y: 0.2542143}
-      - {x: 0.12336922, y: 0.3180952}
-      - {x: -0.25549603, y: 0.30992413}
-      - {x: -0.37646103, y: 0.25590992}
-      - {x: -0.5005655, y: 0.13005257}
-      - {x: -0.56925106, y: 0.0008382797}
-      - {x: -0.563921, y: -0.25690842}
-      - {x: -0.5042143, y: -0.31727886}
-      - {x: -0.37611103, y: -0.37443256}
-      - {x: -0.24864769, y: -0.44292164}
-      - {x: 0.25171947, y: -0.44227886}
-      - {x: 0.37133121, y: -0.38512707}
-      - {x: 0.4443426, y: -0.31712723}
-      - {x: 0.44683552, y: -0.12050438}
-      - {x: 0.44350052, y: 0.0055189133}
-      - {x: 0.44227982, y: 0.005619049}
-  m_UseDelaunayMesh: 0
---- !u!50 &7073086340510881119
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6152354100134392334}
-  m_BodyType: 1
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
+  serializedVersion: 2
+  m_Size: {x: 1.017024, y: 0.33411503}
+  m_EdgeRadius: 0

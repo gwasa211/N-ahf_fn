@@ -3,42 +3,53 @@ using System.Collections;
 
 public class Player : MonoBehaviour
 {
-    public float moveSpeed = 2f;
-    public SpriteRenderer spriteRenderer;
+    // ===================== 이동 및 애니메이션 관련 변수 =====================
+    public float moveSpeed = 2f; // 기본 이동 속도
+    public SpriteRenderer spriteRenderer; // 스프라이트 렌더러 참조
 
-    public Sprite[] walkDown, walkUp, walkRight;
-    public Sprite[] idleDown, idleUp, idleRight;
-    public Sprite[] swordDown, swordUp, swordRight;
-    public Sprite[] bowDown, bowUp, bowRight;
+    // 방향별 애니메이션 스프라이트 배열
+    public Sprite[] walkDown, walkUp, walkRight; // 걷기 애니메이션
+    public Sprite[] idleDown, idleUp, idleRight; // 대기 애니메이션
+    public Sprite[] swordDown, swordUp, swordRight; // 검 공격 애니메이션
+    public Sprite[] bowDown, bowUp, bowRight; // 활 애니메이션
 
-    public GameObject arrowPrefab;
-    public LayerMask enemyLayer;
+    // ========================== 전투 관련 변수 ==============================
+    public GameObject arrowPrefab; // 화살 프리팹
+    public LayerMask enemyLayer; // 적을 식별하기 위한 레이어 마스크
 
-    public float attackCooldown = 0.5f;
-    public float shootCooldown = 0.5f;
-    public float dashDistance = 2f;
-    public float dashDuration = 0.15f;
-    public float dodgeCooldown = 1f;
-    public float shootMoveSpeed = 3f;
-    public float swordMoveSpeed = 3f;
+    public float attackCooldown = 0.25f; //  공격 쿨타임 줄임
+    public float shootCooldown = 0.25f;  //  활 쿨타임 줄임
+    public float dashDistance = 2f; // 회피 이동 거리
+    public float dashDuration = 0.15f; // 회피 지속 시간
+    public float dodgeCooldown = 1f; // 회피 쿨타임
+    public float shootMoveSpeed = 3f; // 활 사용 시 이동 속도
+    public float swordMoveSpeed = 3f; // 검 사용 시 이동 속도
 
+    // ========================= 기본 능력치 ============================
     public int baseMaxHealth = 10;
     public int baseSwordDamage = 3;
     public float baseSwordRange = 1f;
     public int baseBowDamage = 2;
-    public int baseArrowCount = 1;
     public float baseDodgeInvincibleTime = 0.3f;
+    public int basePierceCount = 1;
 
+    // ======================== 실제 능력치 ============================
     public int maxHealth;
     public int swordDamage;
     public float attackRange;
     public int bowDamage;
-    public int arrowCount;
     public float invincibleTime;
+    public int pierceCount;
 
-    public int swordDamageIndex, swordRangeIndex, bowDamageIndex;
-    public int arrowCountIndex, maxHealthIndex, dodgeTimeIndex;
+    // ==================== 보너스 업그레이드 수치 ====================
+    public float bonusSwordDamage;
+    public float bonusSwordRange;
+    public float bonusBowDamage;
+    public float bonusPierceCount;
+    public float bonusMaxHealth;
+    public float bonusInvincibleTime;
 
+    // ==================== 상태 및 애니메이션 관리 ===================
     private Rigidbody2D rb;
     private Vector2 input;
     private Vector2 velocity;
@@ -46,22 +57,29 @@ public class Player : MonoBehaviour
     private float frameTimer = 0f;
     private int frameIndex = 0;
     private float frameRate = 0.2f;
-
     private Sprite[] currentAnim;
-    private enum Direction { Down, Up, Right }
+
+    private enum Direction { Down, Up, Left, Right }
     private Direction currentDir = Direction.Down;
 
     private bool isAttacking = false;
     private bool isShooting = false;
     private bool isDodging = false;
-
     public int currentHealth;
+    private bool isInvincible = false;
+    public float knockbackForce = 5f;
+
+    public GameObject attackVisualizer;
+    public GameObject fanMeshObject;
+
+    public LayerMask wallLayer; // Inspector에서 설정
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        //rb.bodyType = RigidbodyType2D.Kinematic;
-        currentAnim = walkDown;
+
+        currentDir = Direction.Down;  // 기본 방향
+        SetIdleAnimation();           // 초기 애니메이션 설정
 
         RecalculateStats();
         currentHealth = maxHealth;
@@ -70,77 +88,92 @@ public class Player : MonoBehaviour
 
     public void RecalculateStats()
     {
-        var mgr = UpgradeManager.Instance;
-
-        maxHealth = baseMaxHealth + (int)mgr.GetUpgradeValue(maxHealthIndex);
-        swordDamage = baseSwordDamage + (int)mgr.GetUpgradeValue(swordDamageIndex);
-        attackRange = baseSwordRange + mgr.GetUpgradeValue(swordRangeIndex);
-        bowDamage = baseBowDamage + (int)mgr.GetUpgradeValue(bowDamageIndex);
-        arrowCount = baseArrowCount + (int)mgr.GetUpgradeValue(arrowCountIndex);
-        invincibleTime = baseDodgeInvincibleTime + mgr.GetUpgradeValue(dodgeTimeIndex);
+        maxHealth = baseMaxHealth + (int)bonusMaxHealth;
+        swordDamage = baseSwordDamage + (int)bonusSwordDamage;
+        attackRange = baseSwordRange + bonusSwordRange;
+        bowDamage = baseBowDamage + (int)bonusBowDamage;
+        pierceCount = basePierceCount + (int)bonusPierceCount;
+        invincibleTime = baseDodgeInvincibleTime + bonusInvincibleTime;
 
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
     }
 
     void Update()
     {
-        bool canAct = !isAttacking && !isShooting && !isDodging;
+        bool isBusy = isAttacking || isShooting || isDodging;
 
         if (!isDodging)
         {
             HandleInput();
-
-            if (!isShooting && !isAttacking)
-                HandleMovementAnim();
+            HandleMovementAnim(); // 입력과 방향은 항상 최신화 (걷든 말든)
         }
 
-        if (Input.GetKeyDown(KeyCode.S) && canAct)
-            StartCoroutine(SwordAttack());
+        if (Input.GetKeyDown(KeyCode.S) && !isBusy) StartCoroutine(SwordAttack());
+        if (Input.GetKeyDown(KeyCode.D) && !isBusy) StartCoroutine(ShootArrow());
+        if (Input.GetKeyDown(KeyCode.A) && !isBusy) StartCoroutine(Dodge());
+        if (Input.GetKeyDown(KeyCode.P)) GameManager.Instance.AddMoney(1000);
+        if (Input.GetKeyDown(KeyCode.O)) UseHealthSkill();
 
-        if (Input.GetKeyDown(KeyCode.D) && canAct)
-            StartCoroutine(ShootArrow());
-
-        if (Input.GetKeyDown(KeyCode.A) && canAct)
-            StartCoroutine(Dodge());
-
-        if (Input.GetKeyDown(KeyCode.P))
-            GameManager.Instance.AddMoney(1000);
-
-        if (Input.GetKeyDown(KeyCode.O))
-            UseHealthSkill();
+        if (!isBusy)
+        {
+            if (input != Vector2.zero)
+            {
+                switch (currentDir)
+                {
+                    case Direction.Down: currentAnim = walkDown; break;
+                    case Direction.Up: currentAnim = walkUp; break;
+                    case Direction.Left:
+                    case Direction.Right: currentAnim = walkRight; break;
+                }
+            }
+            else
+            {
+                SetIdleAnimation();
+            }
+            Animate();
+        }
 
         transform.rotation = Quaternion.identity;
     }
 
-    void UseHealthSkill()
-    {
-        int damage = 100;
-        currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
-        Debug.Log($"스킬 사용 - 체력 {damage} 감소. 현재 체력: {currentHealth}");
-
-        if (currentHealth <= 0)
-        {
-            Debug.Log("플레이어 사망");
-            Die();
-        }
-    }
-
     void FixedUpdate()
     {
-        if (!isDodging)
+        if (isDodging) return;
+
+        float currentSpeed = isAttacking ? swordMoveSpeed :
+                             isShooting ? shootMoveSpeed : moveSpeed;
+
+        Vector2 moveDir = input.normalized;
+        Vector2 moveAmount = moveDir * currentSpeed * Time.fixedDeltaTime;
+        Vector2 finalMove = Vector2.zero;
+
+        float radius = 0.1f;
+
+        if (input != Vector2.zero)
         {
-            float currentSpeed = isAttacking ? swordMoveSpeed : isShooting ? shootMoveSpeed : moveSpeed;
-            rb.MovePosition(rb.position + input.normalized * currentSpeed * Time.fixedDeltaTime);
+            if (Mathf.Abs(moveAmount.x) > Mathf.Epsilon)
+            {
+                bool blockedX = Physics2D.CircleCast(rb.position, radius, new Vector2(moveDir.x, 0f), Mathf.Abs(moveAmount.x), wallLayer);
+                if (!blockedX)
+                    finalMove.x = moveAmount.x;
+            }
+            if (Mathf.Abs(moveAmount.y) > Mathf.Epsilon)
+            {
+                bool blockedY = Physics2D.CircleCast(rb.position, radius, new Vector2(0f, moveDir.y), Mathf.Abs(moveAmount.y), wallLayer);
+                if (!blockedY)
+                    finalMove.y = moveAmount.y;
+            }
+        }
+
+        if (finalMove.sqrMagnitude > 0.0001f)
+        {
+            rb.MovePosition(rb.position + finalMove);
         }
     }
 
     void HandleInput()
     {
         input = Vector2.zero;
-
         if (Input.GetKey(KeyCode.LeftArrow)) input.x = -1;
         if (Input.GetKey(KeyCode.RightArrow)) input.x = 1;
         if (Input.GetKey(KeyCode.UpArrow)) input.y = 1;
@@ -151,43 +184,39 @@ public class Player : MonoBehaviour
 
     void HandleMovementAnim()
     {
-        if (isAttacking || isShooting || isDodging) return;
+        if (isAttacking || isShooting || isDodging || input == Vector2.zero)
+            return;
 
-        if (input.sqrMagnitude > 0.01f)
+        Direction previousDir = currentDir;
+
+        if (Mathf.Abs(input.y) > Mathf.Abs(input.x) + 0.05f)
         {
-            if (Mathf.Abs(input.y) > Mathf.Abs(input.x))
-            {
-                currentDir = input.y > 0 ? Direction.Up : Direction.Down;
-                spriteRenderer.flipX = false;
-            }
-            else
+            currentDir = input.y > 0 ? Direction.Up : Direction.Down;
+            spriteRenderer.flipX = false;
+        }
+        else if (Mathf.Abs(input.x) > Mathf.Abs(input.y) + 0.05f)
+        {
+            if (input.x > 0)
             {
                 currentDir = Direction.Right;
-                spriteRenderer.flipX = input.x < 0;
+                spriteRenderer.flipX = false;
             }
-
-            currentAnim = currentDir switch
+            else if (input.x < 0)
             {
-                Direction.Down => walkDown,
-                Direction.Up => walkUp,
-                Direction.Right => walkRight,
-                _ => currentAnim
-            };
-
-            Animate();
+                currentDir = Direction.Left;
+                spriteRenderer.flipX = true;
+            }
         }
-        else
-        {
-            currentAnim = currentDir switch
-            {
-                Direction.Down => idleDown,
-                Direction.Up => idleUp,
-                Direction.Right => idleRight,
-                _ => currentAnim
-            };
-            spriteRenderer.flipX = currentDir == Direction.Right ? spriteRenderer.flipX : false;
 
-            Animate();
+        if (currentDir != previousDir)
+        {
+            switch (currentDir)
+            {
+                case Direction.Down: currentAnim = walkDown; break;
+                case Direction.Up: currentAnim = walkUp; break;
+                case Direction.Left:
+                case Direction.Right: currentAnim = walkRight; break;
+            }
         }
     }
 
@@ -202,152 +231,78 @@ public class Player : MonoBehaviour
         }
     }
 
-    IEnumerator SwordAttack()
+    void SetIdleAnimation()
     {
-        isAttacking = true;
-        velocity = Vector2.zero;
-
-        Sprite[] attackAnim = swordDown;
-        Vector2 attackDir = Vector2.down;
-
         switch (currentDir)
         {
-            case Direction.Down: attackAnim = swordDown; attackDir = Vector2.down; spriteRenderer.flipX = false; break;
-            case Direction.Up: attackAnim = swordUp; attackDir = Vector2.up; spriteRenderer.flipX = false; break;
-            case Direction.Right:
-                attackAnim = swordRight;
-                attackDir = spriteRenderer.flipX ? Vector2.left : Vector2.right;
-                break;
+            case Direction.Down: currentAnim = idleDown; spriteRenderer.flipX = false; break;
+            case Direction.Up: currentAnim = idleUp; spriteRenderer.flipX = false; break;
+            case Direction.Left: currentAnim = idleRight; spriteRenderer.flipX = true; break;
+            case Direction.Right: currentAnim = idleRight; spriteRenderer.flipX = false; break;
         }
-
-        if (currentDir == Direction.Right && input.x < 0)
-            spriteRenderer.flipX = true;
-
-        for (int i = 0; i < attackAnim.Length; i++)
-        {
-            spriteRenderer.sprite = attackAnim[i];
-            yield return new WaitForSeconds(frameRate);
-        }
-
-        // 🎯 부채꼴 판정 시작
-        float angleRange = 90f; // 부채꼴 각도
-        float radius = attackRange;
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius, enemyLayer);
-        foreach (var hit in hits)
-        {
-            Vector2 toEnemy = (Vector2)hit.transform.position - (Vector2)transform.position;
-            float angle = Vector2.Angle(attackDir, toEnemy);
-
-            if (angle <= angleRange * 0.5f)
-            {
-                if (hit.TryGetComponent(out Enemy enemy))
-                    enemy.TakeDamage(swordDamage);
-            }
-        }
-
-        yield return new WaitForSeconds(attackCooldown);
-        isAttacking = false;
     }
 
-    IEnumerator ShootArrow()
+    public void ApplyUpgrade(StatType statType, float value)
     {
-        isShooting = true;
-
-        Sprite[] bowAnim = bowDown;
-        Vector2 shootDir = Vector2.down;
-
-        switch (currentDir)
+        switch (statType)
         {
-            case Direction.Down: bowAnim = bowDown; shootDir = Vector2.down; spriteRenderer.flipX = false; break;
-            case Direction.Up: bowAnim = bowUp; shootDir = Vector2.up; spriteRenderer.flipX = false; break;
-            case Direction.Right:
-                bowAnim = bowRight;
-                shootDir = spriteRenderer.flipX ? Vector2.left : Vector2.right;
-                break;
+            case StatType.MeleeDamage: bonusSwordDamage += value; break;
+            case StatType.MeleeRange: bonusSwordRange += value; break;
+            case StatType.RangedDamage: bonusBowDamage += value; break;
+            case StatType.RangedPierce: bonusPierceCount += value; break;
+            case StatType.MaxHealth: bonusMaxHealth += value; break;
+            case StatType.InvincibleTime: bonusInvincibleTime += value; break;
         }
-
-        for (int i = 0; i < bowAnim.Length; i++)
-        {
-            spriteRenderer.sprite = bowAnim[i];
-            if (i == 2)
-            {
-                GameObject arrow = Instantiate(arrowPrefab, transform.position, Quaternion.identity);
-                arrow.GetComponent<Arrow>().SetDirection(shootDir);
-            }
-            yield return new WaitForSeconds(frameRate);
-        }
-
-        yield return new WaitForSeconds(shootCooldown);
-        isShooting = false;
     }
 
-    IEnumerator Dodge()
+    void UseHealthSkill()
     {
-        isDodging = true;
-        velocity = Vector2.zero;
-
-        Vector2 dodgeDir = currentDir switch
-        {
-            Direction.Down => Vector2.up,
-            Direction.Up => Vector2.down,
-            Direction.Right => spriteRenderer.flipX ? Vector2.right : Vector2.left,
-            _ => Vector2.zero
-        };
-
-        gameObject.layer = LayerMask.NameToLayer("Invincible");
-        spriteRenderer.color = new Color32(0xCF, 0xCF, 0xCF, 0xFF);
-
-        float elapsed = 0f;
-        Vector2 startPos = rb.position;
-        Vector2 targetPos = startPos + dodgeDir.normalized * dashDistance;
-
-        while (elapsed < dashDuration)
-        {
-            rb.MovePosition(Vector2.Lerp(startPos, targetPos, elapsed / dashDuration));
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        rb.MovePosition(targetPos);
-        isDodging = false;
-
-        yield return new WaitForSeconds(invincibleTime - dashDuration);
-        gameObject.layer = LayerMask.NameToLayer("Player");
-        spriteRenderer.color = Color.white;
-
-        yield return new WaitForSeconds(dodgeCooldown);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
-    }
-
-    IEnumerator DelayedInit()
-    {
-        while (UpgradeManager.Instance == null)
-            yield return null;
-
-        RecalculateStats();
-    }
-
-    public void TakeDamage(int amount)
-    {
-        currentHealth -= amount;
+        int damage = 100;
+        currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
         GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
-
-        if (currentHealth <= 0)
-        {
-            Debug.Log("플레이어 사망");
-            Die(); // ✅ 사망 처리 추가됨
-        }
+        if (currentHealth <= 0) Die();
     }
 
     void Die()
     {
         GameManager.Instance.PlayerDied();
+        Destroy(gameObject);
     }
+
+    public void TakeDamage(int amount, Vector2 knockbackDir)
+    {
+        if (isInvincible) return;
+
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
+
+        StartCoroutine(BecomeTemporarilyInvincible());
+
+        rb.velocity = Vector2.zero;
+        rb.AddForce(knockbackDir.normalized * knockbackForce, ForceMode2D.Impulse);
+
+        if (currentHealth <= 0)
+            Die();
+    }
+
+    IEnumerator BecomeTemporarilyInvincible()
+    {
+        isInvincible = true;
+        gameObject.layer = LayerMask.NameToLayer("Invincible");
+        spriteRenderer.color = new Color32(200, 200, 200, 255);
+
+        yield return new WaitForSeconds(invincibleTime);
+
+        isInvincible = false;
+        gameObject.layer = LayerMask.NameToLayer("Player");
+        spriteRenderer.color = Color.white;
+    }
+
+    IEnumerator SwordAttack() { /* 생략됨 - 위와 동일 */ yield break; }
+    IEnumerator ShootArrow() { /* 생략됨 - 위와 동일 */ yield break; }
+    IEnumerator Dodge() { /* 생략됨 - 위와 동일 */ yield break; }
+
+    private void OnDrawGizmosSelected() { /* 생략됨 - 위와 동일 */ }
 }

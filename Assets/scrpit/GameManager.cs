@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// GameManager.cs - 정리된 버전 (UpgradeManager 제거됨)
+
+using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -18,7 +20,6 @@ public class GameManager : MonoBehaviour
 
     public GameObject gameOverUI;
 
-
     private void Awake()
     {
         if (Instance == null)
@@ -29,6 +30,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        SaveSystem.LoadPlayer(player); // 자동 불러오기
         UpdateMoneyUI();
     }
 
@@ -36,7 +38,17 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.P))
         {
-            AddMoney(1000);
+            AddMoney(1000); // 디버그용 돈 추가
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            SaveSystem.SavePlayer(player); // 수동 저장
+        }
+
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            SaveSystem.LoadPlayer(player); // 수동 로드
         }
     }
 
@@ -73,39 +85,6 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("healthText가 연결되지 않았습니다.");
     }
 
-
-    public bool TryUpgrade(int upgradeIndex)
-    {
-        var upgradeManager = UpgradeManager.Instance;
-
-        if (upgradeIndex < 0 || upgradeIndex >= upgradeManager.upgrades.Count)
-            return false;
-
-        var entry = upgradeManager.upgrades[upgradeIndex];
-        var data = entry.data;
-
-        if (data == null || data.valuePerLevel == null || data.costPerLevel == null)
-            return false;
-
-        int currentLevel = entry.currentLevel;
-        if (currentLevel >= data.valuePerLevel.Length)
-            return false;
-
-        int cost = data.costPerLevel[currentLevel];
-
-        if (TrySpendMoney(cost))
-        {
-            entry.currentLevel++;
-
-            player.RecalculateStats(); // ✅ 이거 반드시 있어야 함!
-            GameManager.Instance.UpdateHealthUI(player.currentHealth, player.maxHealth); // ✅ UI 갱신
-
-            return true;
-        }
-
-        return false;
-    }
-
     public void PlayerDied()
     {
         Time.timeScale = 0f; // 게임 일시정지
@@ -123,5 +102,4 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu"); // 메인 메뉴 씬 이름에 맞게 수정
     }
-
 }

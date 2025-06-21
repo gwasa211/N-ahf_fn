@@ -1,25 +1,30 @@
-using UnityEngine;
+癤퓎sing UnityEngine;
 using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
+    [Header("Stats")]
     public int maxHealth = 10;
-    private int currentHealth;
-
+    public int damage = 1;
     public float moveSpeed = 2f;
-    public Transform target;
 
+    [Header("Animation")]
     public Sprite[] walkSprites;
     public Sprite[] deathSprites;
     public float frameRate = 0.2f;
 
+    [Header("Target")]
+    public Transform target; // usually the player
+
+    private int currentHealth;
     private int frameIndex = 0;
     private float frameTimer = 0f;
+
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
     private bool isDead = false;
+    private bool hasRecentlyDamagedPlayer = false;
 
-    public int damage = 1;
     void Start()
     {
         currentHealth = maxHealth;
@@ -34,13 +39,23 @@ public class Enemy : MonoBehaviour
     {
         if (isDead) return;
 
-        if (target != null)
-        {
-            Vector2 direction = (target.position - transform.position).normalized;
-            rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
-        }
+        HandleMovement();
+        HandleAnimation();
+        FaceTarget();
+    }
 
-        // 걷기 애니메이션
+    void HandleMovement()
+    {
+        if (target == null) return;
+
+        Vector2 direction = (target.position - transform.position).normalized;
+        rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
+    }
+
+    void HandleAnimation()
+    {
+        if (walkSprites == null || walkSprites.Length == 0) return;
+
         frameTimer += Time.deltaTime;
         if (frameTimer >= frameRate)
         {
@@ -48,12 +63,13 @@ public class Enemy : MonoBehaviour
             frameIndex = (frameIndex + 1) % walkSprites.Length;
             spriteRenderer.sprite = walkSprites[frameIndex];
         }
-        if (target != null)
-        {
-            Vector2 dir = target.position - transform.position;
-            spriteRenderer.flipX = dir.x < 0;
-        }
+    }
 
+    void FaceTarget()
+    {
+        if (target == null) return;
+        Vector2 dir = target.position - transform.position;
+        spriteRenderer.flipX = dir.x < 0;
     }
 
     public void TakeDamage(int amount)
@@ -70,27 +86,34 @@ public class Enemy : MonoBehaviour
         isDead = true;
         rb.velocity = Vector2.zero;
 
-        // 죽는 애니메이션
-        for (int i = 0; i < deathSprites.Length; i++)
+        foreach (var sprite in deathSprites)
         {
-            spriteRenderer.sprite = deathSprites[i];
+            spriteRenderer.sprite = sprite;
             yield return new WaitForSeconds(frameRate);
         }
+
         MoneyManager.Instance.AddMoney(100);
-        GameManager.Instance.AddMoney(100);
         Destroy(gameObject);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        if (other.CompareTag("Player"))
+        if (collision.collider.CompareTag("Player") && !hasRecentlyDamagedPlayer)
         {
-            Player player = other.GetComponent<Player>();
+            Player player = collision.collider.GetComponent<Player>();
             if (player != null)
             {
-                player.TakeDamage(damage);
-                Debug.Log("플레이어에게 데미지를 입힘");
+                Vector2 knockbackDir = (player.transform.position - transform.position).normalized;
+                player.TakeDamage(damage, knockbackDir);
+                StartCoroutine(DamageCooldown());
             }
         }
+    }
+
+    IEnumerator DamageCooldown()
+    {
+        hasRecentlyDamagedPlayer = true;
+        yield return new WaitForSeconds(0.5f);
+        hasRecentlyDamagedPlayer = false;
     }
 }

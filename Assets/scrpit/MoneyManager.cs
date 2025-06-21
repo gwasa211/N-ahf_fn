@@ -1,46 +1,27 @@
 using UnityEngine;
-using TMPro;
 
 public class MoneyManager : MonoBehaviour
 {
     public static MoneyManager Instance;
 
     public int currentMoney = 0;
-    public TMP_Text moneyText;  // 에디터에서 연결
+    public TMPro.TextMeshProUGUI moneyText; // ← UI 텍스트 연결 필요
 
     void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
-    }
-
-    void Start()
-    {
-        UpdateMoneyUI();
+        Instance = this;
+        UpdateUI();
     }
 
     public void AddMoney(int amount)
     {
         currentMoney += amount;
-        UpdateMoneyUI();
+        UpdateUI(); // ← 꼭 갱신 호출!
     }
 
-    public void SpendMoney(int amount)
-    {
-        currentMoney -= amount;
-        UpdateMoneyUI();
-    }
-
-    public void UpdateMoneyUI()
+    public void UpdateUI()
     {
         if (moneyText != null)
-            moneyText.text = $"획득한 돈: {currentMoney:N0}";
-    }
-
-    public bool HasEnoughMoney(int amount)
-    {
-        return currentMoney >= amount;
+            moneyText.text = currentMoney.ToString();
     }
 }

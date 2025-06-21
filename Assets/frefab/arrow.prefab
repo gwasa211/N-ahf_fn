@@ -100,10 +100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   damage: 5
-  lifeTime: 3
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 128
+  pierce: 1
 --- !u!61 &6232292643500091892
 BoxCollider2D:
   m_ObjectHideFlags: 0
