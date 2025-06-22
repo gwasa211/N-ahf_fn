@@ -1,12 +1,12 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 public class PlayerMeleeAttack : MonoBehaviour
 {
-    public float attackRange = 1f;          // Ä® ÈÖµÎ¸£´Â ¹üÀ§
-    public int damage = 1;                  // °ø°İ·Â
-    public float attackCooldown = 0.5f;     // °ø°İ °£°İ
-    public LayerMask enemyLayer;           // °ø°İ ´ë»ó ·¹ÀÌ¾î
+    public float attackRange = 1f;
+    public int damage = 1;
+    public float attackCooldown = 0.5f;
+    public LayerMask enemyLayer;
 
     private bool isAttacking = false;
 
@@ -22,25 +22,23 @@ public class PlayerMeleeAttack : MonoBehaviour
     {
         isAttacking = true;
 
-        // Àû Å½»ö ¹× µ¥¹ÌÁö
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayer);
         foreach (Collider2D hit in hits)
         {
             Enemy enemy = hit.GetComponent<Enemy>();
             if (enemy != null)
             {
-                enemy.TakeDamage(damage);
+                Vector2 knockback = (enemy.transform.position - transform.position).normalized;
+                enemy.TakeDamage(damage, knockback); // âœ… ë„‰ë°± ë°©í–¥ í¬í•¨
             }
         }
 
-        // °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç »ğÀÔ °¡´É
         yield return new WaitForSeconds(attackCooldown);
         isAttacking = false;
     }
 
     void OnDrawGizmosSelected()
     {
-        // ¿¡µğÅÍ¿¡¼­ °ø°İ ¹üÀ§ ½Ã°¢È­
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }

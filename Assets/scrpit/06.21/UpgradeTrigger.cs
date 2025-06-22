@@ -2,8 +2,10 @@ using UnityEngine;
 
 public class UpgradeTrigger : MonoBehaviour
 {
-    public StatType statType;
+
     public float upgradeAmount = 1f;
+
+    public StatType statType = StatType.MeleeDamage; // ¿¹½Ã
 
     void OnTriggerStay2D(Collider2D other)
     {

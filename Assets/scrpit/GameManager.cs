@@ -1,6 +1,4 @@
-﻿// GameManager.cs - 정리된 버전 (UpgradeManager 제거됨)
-
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -16,46 +14,72 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI moneyText;
 
     [Header("체력 관련")]
-    public TextMeshProUGUI healthText; // HP 텍스트
+    public TextMeshProUGUI healthText;
 
     public GameObject gameOverUI;
 
     private void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // ✅ 씬 전환에도 유지
+        }
         else
+        {
             Destroy(gameObject);
+            return;
+        }
     }
 
     private void Start()
     {
-        SaveSystem.LoadPlayer(player); // 자동 불러오기
+        // 첫 로딩 시 자동 불러오기
+        SaveSystem.LoadPlayer(player);
         UpdateMoneyUI();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 새 씬에서 플레이어 다시 찾고 로드
+        Player newPlayer = FindObjectOfType<Player>();
+        if (newPlayer != null)
+        {
+            player = newPlayer;
+            SaveSystem.LoadPlayer(player);
+        }
     }
 
     private void Update()
     {
+#if UNITY_EDITOR
+        // 디버그 단축키 (에디터 전용)
         if (Input.GetKeyDown(KeyCode.P))
-        {
-            AddMoney(1000); // 디버그용 돈 추가
-        }
+            AddMoney(1000);
 
         if (Input.GetKeyDown(KeyCode.L))
-        {
-            SaveSystem.SavePlayer(player); // 수동 저장
-        }
+            SaveSystem.SavePlayer(player);
 
         if (Input.GetKeyDown(KeyCode.O))
-        {
-            SaveSystem.LoadPlayer(player); // 수동 로드
-        }
+            SaveSystem.LoadPlayer(player);
+#endif
     }
 
     public void AddMoney(int amount)
     {
         currentMoney += amount;
         UpdateMoneyUI();
+        SaveSystem.SavePlayer(player); // ✅ 자동 저장 추가
     }
 
     public bool TrySpendMoney(int cost)
@@ -64,12 +88,14 @@ public class GameManager : MonoBehaviour
         {
             currentMoney -= cost;
             UpdateMoneyUI();
+            SaveSystem.SavePlayer(player); // ✅ 자동 저장 추가
             return true;
         }
         return false;
     }
 
-    void UpdateMoneyUI()
+
+    public void UpdateMoneyUI()
     {
         if (moneyText != null)
             moneyText.text = $"현재 돈 : {currentMoney}";
@@ -87,19 +113,21 @@ public class GameManager : MonoBehaviour
 
     public void PlayerDied()
     {
-        Time.timeScale = 0f; // 게임 일시정지
+        Time.timeScale = 0f;
         gameOverUI.SetActive(true);
     }
 
     public void RetryGame()
     {
         Time.timeScale = 1f;
+        SaveSystem.SavePlayer(player);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu"); // 메인 메뉴 씬 이름에 맞게 수정
+        SaveSystem.SavePlayer(player);
+        SceneManager.LoadScene("MainMenu"); // 메인 메뉴 씬 이름으로 변경
     }
 }

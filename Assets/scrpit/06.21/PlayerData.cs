@@ -5,10 +5,10 @@ public class PlayerData
     public int maxHealth;
     public int money;
 
-    public float bonusSwordDamage;
+    public int bonusSwordDamage;
     public float bonusSwordRange;
-    public float bonusBowDamage;
-    public float bonusPierceCount;
-    public float bonusMaxHealth;
+    public int bonusBowDamage;
+    public int bonusPierceCount;
+    public int bonusMaxHealth;
     public float bonusInvincibleTime;
 }
