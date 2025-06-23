@@ -1,40 +1,46 @@
 ﻿using UnityEngine;
 using System.Collections;
-
 public class CropVisual : MonoBehaviour
 {
-    public Sprite[] growthStages;       // 0~3단계 작물 스프라이트
-    public GameObject fruitPrefab;      // 열매 프리팹
+    public string cropID; // 각 작물 고유 ID
+    public Sprite[] growthStages;
+    public GameObject fruitPrefab;
 
     private int currentStage = 0;
     private SpriteRenderer sr;
 
-    public string cropID;       // 작물 식별용 (예: 이름 또는 위치)
-    public int stage;           // 성장 단계
-    void Start()
+    void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
-        sr.sprite = growthStages[0];
+    }
+
+    void Start()
+    {
+        sr.sprite = growthStages[currentStage];
     }
 
     public void AdvanceStage()
     {
         currentStage++;
-
-        // 0~3단계까지만 스프라이트 변경
-        if (currentStage < growthStages.Length)
-        {
-            sr.sprite = growthStages[currentStage];
-        }
-        else
-        {
-            sr.sprite = growthStages[growthStages.Length - 1]; // 마지막 모습 유지
-        }
+        SetStage(currentStage);
     }
+
+    public void SetStage(int stage)
+    {
+        if (sr == null)
+            sr = GetComponent<SpriteRenderer>();
+
+        if (growthStages == null || growthStages.Length == 0) return;
+
+        currentStage = Mathf.Clamp(stage, 0, growthStages.Length - 1);
+        sr.sprite = growthStages[currentStage];
+    }
+
+    public int CurrentStage => currentStage;
 
     public void ShowFruitEffect()
     {
-        if (currentStage >= growthStages.Length) // 4단계 이상일 때만
+        if (currentStage >= growthStages.Length)
         {
             Vector3 spawnPos = transform.position + new Vector3(0, 0.5f, 0);
             GameObject fruit = Instantiate(fruitPrefab, spawnPos, Quaternion.identity);
@@ -57,19 +63,4 @@ public class CropVisual : MonoBehaviour
 
         Destroy(fruit);
     }
-
-    public int CurrentStage => currentStage;
-
- 
- 
-
-  
-
-        public void SetStage(int stage)
-        {
-            currentStage = stage;
-            sr.sprite = growthStages[Mathf.Clamp(stage, 0, growthStages.Length - 1)];
-        }
-    
-
 }
