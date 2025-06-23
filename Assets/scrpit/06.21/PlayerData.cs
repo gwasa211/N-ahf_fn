@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+
 [System.Serializable]
 public class PlayerData
 {
@@ -11,4 +13,10 @@ public class PlayerData
     public int bonusPierceCount;
     public int bonusMaxHealth;
     public float bonusInvincibleTime;
+
+    public float bonusDashDistance; //  추가
+
+    public List<CropSaveData> cropStates = new List<CropSaveData>();
+
+    public List<CropData> crops = new List<CropData>(); // 🌱 추가
 }

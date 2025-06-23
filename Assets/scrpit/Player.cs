@@ -27,6 +27,7 @@ public class Player : MonoBehaviour
     public int baseBowDamage = 2;
     public int basePierceCount = 1;
     public float baseInvincibleTime = 0.3f;
+    public float baseDashDistance = 2f;
 
     [Header("Bonus Stats")]
     public int bonusSwordDamage;
@@ -35,6 +36,7 @@ public class Player : MonoBehaviour
     public int bonusPierceCount;
     public int bonusMaxHealth;
     public float bonusInvincibleTime;
+    public float bonusDashDistance;
 
     [Header("Current Stats")]
     public int maxHealth;
@@ -83,16 +85,22 @@ public class Player : MonoBehaviour
 
     public int currentHealth;
 
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        currentAnim = walkDown;
-        facingDir = Vector2.down;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    IEnumerator Start()
+    {
+        while (GameManager.Instance == null)
+            yield return null;
 
         RecalculateStats();
         currentHealth = maxHealth;
         GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
     }
+
 
     public void ApplyUpgrade(StatType stat, float amount)
     {
@@ -115,7 +123,9 @@ public class Player : MonoBehaviour
                 break;
             case StatType.InvincibleTime:
                 bonusInvincibleTime += amount;
+                bonusDashDistance += amount * 2f; // ✅ 비율 조절 가능
                 break;
+
         }
     }
 
@@ -129,10 +139,16 @@ public class Player : MonoBehaviour
         maxHealth = baseMaxHealth + bonusMaxHealth;
         invincibleTime = baseInvincibleTime + bonusInvincibleTime;
 
+        //  이동 거리 제한
+        float maxDash = 4.5f;
+        dashDistance = Mathf.Min(baseDashDistance + bonusDashDistance, maxDash);
+
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        UpdateStatUI(); // ← UI도 함께 갱신
+        UpdateStatUI();
     }
+
+
     void UpdateStatUI()
     {
         if (swordDamageText != null) swordDamageText.text = $"검 데미지: {swordDamage}";
@@ -309,7 +325,7 @@ public class Player : MonoBehaviour
     {
         isShooting = true;
 
-        // 🟩 현재 방향을 복사해서 고정
+        //현재 방향을 복사해서 고정
         Vector2 shootDir = facingDir;
 
         Sprite[] bowAnim = bowDown;

@@ -6,29 +6,30 @@ using TMPro;
 public class MainMenuUI : MonoBehaviour
 {
     [Header("UI Elements")]
-    public GameObject noSavePopup; // 저장 없음 팝업
-    public TextMeshProUGUI popupText;     // 경고 텍스트
+    public GameObject noSavePopup;        // 저장 없음 팝업
+    public TextMeshProUGUI popupText;     // 팝업 메시지 텍스트
+    public string gameSceneName = "GameScene"; // 게임 플레이 씬 이름
 
-    private string savePath => Application.persistentDataPath + "/save.json";
+    private string SavePath => Application.persistentDataPath + "/save.json";
 
     public void OnClickContinue()
     {
-        if (File.Exists(savePath))
+        if (File.Exists(SavePath))
         {
-            SceneManager.LoadScene("GameScene"); // 게임 씬 이름으로 수정
+            SceneManager.LoadScene(gameSceneName);
         }
         else
         {
-            ShowNoSavePopup("저장된 파일이 없습니다.");
+            ShowNoSavePopup("저장된 데이터가 없습니다.");
         }
     }
 
     public void OnClickNewGame()
     {
-        if (File.Exists(savePath))
-            File.Delete(savePath); // 새 게임이면 기존 저장 삭제
+        if (File.Exists(SavePath))
+            File.Delete(SavePath); // 기존 저장 삭제
 
-        SceneManager.LoadScene("GameScene");
+        SceneManager.LoadScene(gameSceneName);
     }
 
     public void OnClickQuit()
@@ -39,7 +40,7 @@ public class MainMenuUI : MonoBehaviour
 #endif
     }
 
-    void ShowNoSavePopup(string message)
+    private void ShowNoSavePopup(string message)
     {
         if (noSavePopup != null)
             noSavePopup.SetActive(true);

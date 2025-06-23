@@ -9,6 +9,8 @@ public class CropVisual : MonoBehaviour
     private int currentStage = 0;
     private SpriteRenderer sr;
 
+    public string cropID;       // 작물 식별용 (예: 이름 또는 위치)
+    public int stage;           // 성장 단계
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -57,4 +59,17 @@ public class CropVisual : MonoBehaviour
     }
 
     public int CurrentStage => currentStage;
+
+ 
+ 
+
+  
+
+        public void SetStage(int stage)
+        {
+            currentStage = stage;
+            sr.sprite = growthStages[Mathf.Clamp(stage, 0, growthStages.Length - 1)];
+        }
+    
+
 }

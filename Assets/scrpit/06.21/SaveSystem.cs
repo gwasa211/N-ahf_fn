@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -21,9 +22,18 @@ public static class SaveSystem
             bonusInvincibleTime = player.bonusInvincibleTime
         };
 
+        CropVisual[] crops = GameObject.FindObjectsOfType<CropVisual>();
+        foreach (var crop in crops)
+        {
+            data.crops.Add(new CropData
+            {
+                cropID = crop.cropID,
+                stage = crop.CurrentStage
+            });
+        }
+
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(path, json);
-        Debug.Log("저장 완료: " + path);
     }
 
     public static void LoadPlayer(Player player)
@@ -34,6 +44,9 @@ public static class SaveSystem
             return;
         }
 
+        if (!File.Exists(path)) return;
+
+   
         string json = File.ReadAllText(path);
         PlayerData data = JsonUtility.FromJson<PlayerData>(json);
 
@@ -47,7 +60,23 @@ public static class SaveSystem
         player.bonusInvincibleTime = data.bonusInvincibleTime;
 
         player.RecalculateStats();
+
+
         player.currentHealth = Mathf.Clamp(data.health, 0, player.maxHealth);
         GameManager.Instance.UpdateHealthUI(player.currentHealth, player.maxHealth);
+
+        CropVisual[] crops = GameObject.FindObjectsOfType<CropVisual>();
+        foreach (var crop in crops)
+        {
+            var match = data.crops.Find(c => c.cropID == crop.cropID);
+            if (match != null)
+            {
+                crop.SetStage(match.stage);
+            }
+        }
+
     }
+
+
+
 }

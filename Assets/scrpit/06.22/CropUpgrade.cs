@@ -22,9 +22,10 @@ public class CropUpgrade : MonoBehaviour
     {
         if (isMaxed) return;
 
-        if (other.CompareTag("Player") && Input.GetKeyDown(KeyCode.W))
-        {
-            if (GameManager.Instance.TrySpendMoney(100))
+        if (other.CompareTag("Player") && Input.GetKey(KeyCode.Space))
+
+            {
+                if (GameManager.Instance.TrySpendMoney(100))
             {
                 currentStage++;
 
