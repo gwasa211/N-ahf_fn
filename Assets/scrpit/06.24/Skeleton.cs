@@ -18,6 +18,8 @@ public class Skeleton : MonoBehaviour
     [Header("Sprites")]
     public Sprite[] walkDown, walkUp, walkRight;
     public Sprite[] attackDown, attackUp, attackRight;
+    public Sprite[] deathAnim;
+
 
     [Header("Others")]
     public LayerMask playerLayer;
@@ -171,11 +173,26 @@ public class Skeleton : MonoBehaviour
     void Die()
     {
         isAlive = false;
-
         GameManager.Instance?.AddMoney(rewardMoney);
         GameManager.Instance?.player?.Heal(1); // 피흡 1
+
+        StartCoroutine(PlayDeathAnimation());
+    }
+
+    IEnumerator PlayDeathAnimation()
+    {
+        currentAnim = deathAnim;
+        animIndex = 0;
+
+        for (int i = 0; i < deathAnim.Length; i++)
+        {
+            sr.sprite = deathAnim[i];
+            yield return new WaitForSeconds(frameRate);
+        }
+
         Destroy(gameObject);
     }
+
 
     void OnDrawGizmosSelected()
     {

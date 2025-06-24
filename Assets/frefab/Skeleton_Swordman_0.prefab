@@ -237,6 +237,11 @@ MonoBehaviour:
   - {fileID: 1953928513, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: -1675629144, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: 819123888, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  deathAnim:
+  - {fileID: 1629877647, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -1484448220, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 1262551743, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 2029098361, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
