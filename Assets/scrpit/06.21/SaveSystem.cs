@@ -1,4 +1,4 @@
-using System.IO;
+ï»¿using System.IO;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -45,27 +45,28 @@ public static class SaveSystem
             bonusInvincibleTime = player.bonusInvincibleTime
         };
 
-        // ÀÛ¹° Á¤º¸ ÀúÀå
-        var crops = GameObject.FindObjectsOfType<CropVisual>();
-        foreach (var crop in crops)
+        // âœ… GameManagerì˜ cropStageì—ì„œ ì €ì¥
+        Dictionary<string, int> savedCrops = GameManager.Instance.GetAllCropStages();
+        foreach (var kvp in savedCrops)
         {
             data.crops.Add(new CropSaveData
             {
-                cropID = crop.cropID,
-                stage = crop.CurrentStage
+                cropID = kvp.Key,
+                stage = kvp.Value
             });
         }
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(path, json);
-        Debug.Log("ÀúÀå ¿Ï·á: " + path);
+        Debug.Log("ì €ì¥ ì™„ë£Œ: " + path);
     }
+
 
     public static void LoadPlayer(Player player)
     {
         if (!File.Exists(path))
         {
-            Debug.LogWarning("ÀúÀå ÆÄÀÏÀÌ ¾øÀ½");
+            Debug.LogWarning("ì €ì¥ íŒŒì¼ì´ ì—†ìŒ");
             return;
         }
 
@@ -86,7 +87,7 @@ public static class SaveSystem
         player.currentHealth = Mathf.Clamp(data.health, 0, player.maxHealth);
         GameManager.Instance.UpdateHealthUI(player.currentHealth, player.maxHealth);
 
-        // ÀÛ¹° º¹¿ø
+        // ì‘ë¬¼ ë³µì›
         var crops = GameObject.FindObjectsOfType<CropVisual>();
         foreach (var savedCrop in data.crops)
         {

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,6 +17,9 @@ public class GameManager : MonoBehaviour
     [Header("체력 관련")]
     public TextMeshProUGUI healthText;
     public GameObject gameOverUI;
+
+    // ✅ 작물 상태 저장용 딕셔너리
+    public Dictionary<string, int> cropStages = new Dictionary<string, int>();
 
     void Awake()
     {
@@ -86,6 +90,13 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SaveSystem.SavePlayer(player);
+        SceneManager.LoadScene("MainMenu");
+    }
+
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -96,17 +107,10 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    public void ReturnToMainMenu()
-    {
-        Time.timeScale = 1f;
-        SaveSystem.SavePlayer(player);
-        SceneManager.LoadScene("MainMenu");
-    }
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         SceneManager.SetActiveScene(scene);
         Debug.Log("현재 활성 씬: " + SceneManager.GetActiveScene().name);
-        SceneManager.SetActiveScene(scene); // 이거 없으면 안 움직여요!
 
         player = FindObjectOfType<Player>();
         if (player != null)
@@ -114,6 +118,7 @@ public class GameManager : MonoBehaviour
 
         moneyText = GameObject.FindWithTag("MoneyText")?.GetComponent<TextMeshProUGUI>();
         healthText = GameObject.FindWithTag("HealthText")?.GetComponent<TextMeshProUGUI>();
+
         GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (GameObject obj in allObjects)
         {
@@ -126,7 +131,7 @@ public class GameManager : MonoBehaviour
 
         if (gameOverUI != null)
         {
-            gameOverUI.SetActive(false); // 시작할 때 꺼주기
+            gameOverUI.SetActive(false);
         }
         else
         {
@@ -135,6 +140,30 @@ public class GameManager : MonoBehaviour
 
         UpdateMoneyUI();
         UpdateHealthUI(player?.currentHealth ?? 0, player?.maxHealth ?? 0);
+
+        // ✅ 작물 상태 복원
+        foreach (var crop in GameObject.FindObjectsOfType<CropVisual>())
+        {
+            int savedStage = GetCropStage(crop.cropID);
+            crop.SetStage(savedStage);
+        }
     }
 
+    // ✅ 작물 상태 저장용 getter
+    public Dictionary<string, int> GetAllCropStages()
+    {
+        return new Dictionary<string, int>(cropStages);
+    }
+
+    // ✅ 작물 상태 갱신
+    public void SetCropStage(string cropID, int stage)
+    {
+        cropStages[cropID] = stage;
+    }
+
+    // ✅ 저장된 작물 스테이지 반환
+    public int GetCropStage(string cropID)
+    {
+        return cropStages.ContainsKey(cropID) ? cropStages[cropID] : 0;
+    }
 }

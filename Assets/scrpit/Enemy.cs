@@ -112,7 +112,8 @@ public class Enemy : MonoBehaviour
     {
         // 회복, 돈 지급
         if (GameManager.Instance?.player != null)
-            GameManager.Instance.player.Heal(2);
+            GameManager.Instance.player.Heal(GameManager.Instance.player.onKillHealAmount);
+
 
         GameManager.Instance?.AddMoney(rewardMoney);
 

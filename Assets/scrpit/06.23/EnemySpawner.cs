@@ -1,28 +1,53 @@
+ï»¿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject enemyPrefab;
-    public float spawnInterval = 5f;
-    public int maxEnemies = 5;
+    public float spawnInterval = 3f;
+    public int spawnCount = 18;
+    public Vector2 spawnAreaMin;
+    public Vector2 spawnAreaMax;
 
-    private float timer;
+    private float timer = 0f;
     private List<GameObject> spawnedEnemies = new List<GameObject>();
 
     void Update()
     {
         timer += Time.deltaTime;
 
-        // ÀÏÁ¤ ¼ö ¹Ì¸¸ÀÏ ¶§¸¸ »ı¼º
-        if (timer >= spawnInterval && spawnedEnemies.Count < maxEnemies)
+        if (timer >= spawnInterval)
         {
             timer = 0f;
-            GameObject enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-            spawnedEnemies.Add(enemy);
+            SpawnEnemies();
         }
 
-        // Á×Àº ¸ó½ºÅÍ Á¤¸®
+        // ì£½ì€ ì  ì •ë¦¬
         spawnedEnemies.RemoveAll(e => e == null);
+    }
+
+    void SpawnEnemies()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.player == null) return;
+
+        Transform playerTransform = GameManager.Instance.player.transform;
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            Vector2 randomPos = new Vector2(
+                Random.Range(spawnAreaMin.x, spawnAreaMax.x),
+                Random.Range(spawnAreaMin.y, spawnAreaMax.y)
+            );
+
+            GameObject enemy = Instantiate(enemyPrefab, randomPos, Quaternion.identity);
+            Enemy enemyScript = enemy.GetComponent<Enemy>();
+            if (enemyScript != null)
+            {
+                enemyScript.target = playerTransform; // âœ… ìë™ íƒ€ê²Ÿ ì„¤ì •
+            }
+
+            spawnedEnemies.Add(enemy);
+        }
     }
 }

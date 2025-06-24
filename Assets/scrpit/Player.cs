@@ -28,6 +28,7 @@ public class Player : MonoBehaviour
     public int basePierceCount = 1;
     public float baseInvincibleTime = 0.3f;
     public float baseDashDistance = 2f;
+    public float bonusKnockbackStrength = 0f;
 
     [Header("Bonus Stats")]
     public int bonusSwordDamage;
@@ -37,6 +38,7 @@ public class Player : MonoBehaviour
     public int bonusMaxHealth;
     public float bonusInvincibleTime;
     public float bonusDashDistance;
+    public float bonusKnockback = 0f; // ✅ 추가
 
     [Header("Current Stats")]
     public int maxHealth;
@@ -66,6 +68,10 @@ public class Player : MonoBehaviour
     public TextMeshProUGUI maxHealthText;
     public TextMeshProUGUI invincibleTimeText;
 
+    [Header("Bonus Effects")]
+    public int onKillHealAmount = 2; // 기본값 2
+    public float totalKnockback => 1f + bonusKnockback; // ✅ 총 넉백 계산 (기본값 1)
+
     private Rigidbody2D rb;
     private Vector2 input;
     private Vector2 velocity;
@@ -93,15 +99,15 @@ public class Player : MonoBehaviour
 
     IEnumerator Start()
     {
-        // GameManager 생성될 때까지 대기
         while (GameManager.Instance == null)
             yield return null;
 
-        // GameManager에 자기 등록
         GameManager.Instance.RegisterPlayer(this);
-
-        // 저장 데이터 불러오기
         SaveSystem.LoadPlayer(this);
+
+        // ✅ 무조건 체력 가득 채우기
+        currentHealth = maxHealth;
+        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
     }
 
 
@@ -112,6 +118,7 @@ public class Player : MonoBehaviour
         {
             case StatType.MeleeDamage:
                 bonusSwordDamage += Mathf.RoundToInt(amount);
+                bonusKnockback += 0.05f; // ✅ 넉백 강화
                 break;
             case StatType.MeleeRange:
                 bonusSwordRange += amount;
@@ -124,12 +131,14 @@ public class Player : MonoBehaviour
                 break;
             case StatType.MaxHealth:
                 bonusMaxHealth += Mathf.RoundToInt(amount);
+                onKillHealAmount += 1; // ⬅️ 추가
+                currentHealth = maxHealth; // 체력도 즉시 회복
                 break;
             case StatType.InvincibleTime:
                 bonusInvincibleTime += amount;
                 bonusDashDistance += amount * 2f; // ✅ 비율 조절 가능
                 break;
-
+          
         }
     }
 
@@ -184,9 +193,20 @@ public class Player : MonoBehaviour
 
         transform.rotation = Quaternion.identity;
 
-     
+        // ✅ 디버그 키
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            TakeDamage(250, Vector2.zero);
+            Debug.Log("플레이어에게 250 데미지를 줬습니다.");
+        }
 
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            GameManager.Instance.AddMoney(10000);
+            Debug.Log("돈 10,000을 획득했습니다.");
+        }
     }
+
 
     public void Heal(int amount)
     {
@@ -263,7 +283,7 @@ public class Player : MonoBehaviour
     {
         isAttacking = true;
 
-        // 🟩 현재 방향을 복사해서 고정
+        //  현재 방향을 복사해서 고정
         Vector2 attackDir = facingDir;
 
         // 부채꼴 시각화
@@ -302,7 +322,8 @@ public class Player : MonoBehaviour
                         if (hit.TryGetComponent(out Enemy enemy))
                         {
                             Vector2 knockbackDir = (enemy.transform.position - transform.position).normalized;
-                            enemy.TakeDamage(swordDamage, knockbackDir);
+                            enemy.TakeDamage(swordDamage, knockbackDir * totalKnockback); // ✅ 강화된 넉백 적용
+
                         }
                     }
                 }
