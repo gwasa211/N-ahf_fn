@@ -282,8 +282,6 @@ public class Player : MonoBehaviour
     IEnumerator SwordAttack()
     {
         isAttacking = true;
-
-        //  현재 방향을 복사해서 고정
         Vector2 attackDir = facingDir;
 
         // 부채꼴 시각화
@@ -293,8 +291,8 @@ public class Player : MonoBehaviour
         fanVisualizer.UpdateMesh(90f, attackRange);
         Invoke(nameof(HideFanVisualizer), 0.1f);
 
-        // 애니메이션 고정
-        Sprite[] attackAnim = swordDown;
+        // ★ 여기서 attackAnim 변수 선언
+        Sprite[] attackAnim;
         if (Mathf.Abs(attackDir.y) > Mathf.Abs(attackDir.x))
         {
             attackAnim = attackDir.y > 0 ? swordUp : swordDown;
@@ -306,6 +304,7 @@ public class Player : MonoBehaviour
             spriteRenderer.flipX = attackDir.x < 0;
         }
 
+        // 애니메이션 프레임 재생
         for (int i = 0; i < attackAnim.Length; i++)
         {
             spriteRenderer.sprite = attackAnim[i];
@@ -314,17 +313,27 @@ public class Player : MonoBehaviour
             {
                 float angleRange = 90f;
                 Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayer);
+
                 foreach (var hit in hits)
                 {
                     Vector2 toTarget = (hit.transform.position - transform.position).normalized;
-                    if (Vector2.Angle(attackDir, toTarget) <= angleRange / 2)
-                    {
-                        if (hit.TryGetComponent(out Enemy enemy))
-                        {
-                            Vector2 knockbackDir = (enemy.transform.position - transform.position).normalized;
-                            enemy.TakeDamage(swordDamage, knockbackDir * totalKnockback); // ✅ 강화된 넉백 적용
+                    if (Vector2.Angle(attackDir, toTarget) > angleRange / 2)
+                        continue;
 
-                        }
+                    if (hit.TryGetComponent<Enemy>(out var enemy))
+                    {
+                        Vector2 kb = (enemy.transform.position - transform.position).normalized * totalKnockback;
+                        enemy.TakeDamage(swordDamage, kb);
+                    }
+                    else if (hit.TryGetComponent<Skeleton>(out var skeleton))
+                    {
+                        Vector2 kb = (skeleton.transform.position - transform.position).normalized * totalKnockback;
+                        skeleton.TakeDamage(swordDamage, kb);
+                    }
+                    else if (hit.TryGetComponent<SkeletonEnemy>(out var skelEnemy))
+                    {
+                        Vector2 kb = (skelEnemy.transform.position - transform.position).normalized * totalKnockback;
+                        skelEnemy.TakeDamage(swordDamage, kb);
                     }
                 }
             }
@@ -335,6 +344,8 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(attackCooldown);
         isAttacking = false;
     }
+
+
 
 
     void HideFanVisualizer()
