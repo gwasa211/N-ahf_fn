@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1955563469088616388}
   - component: {fileID: 2864078677116088316}
+  - component: {fileID: 7410229935263321064}
   - component: {fileID: 6455423872854408950}
   - component: {fileID: 4427538562524997376}
   - component: {fileID: 4320896968574408416}
@@ -73,8 +74,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 324882275
-  m_SortingLayer: 3
+  m_SortingLayerID: 886236167
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_Sprite: {fileID: 2071556907, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -87,6 +88,28 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &7410229935263321064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4727124548059276097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 372f26be2ed08e044ad94b327337e6ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 10
+  moveSpeed: 2
+  damage: 1
+  knockbackDistance: 0.3
+  hitColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  hitEffectTime: 0.1
+  target: {fileID: 0}
+  walkSprites: []
+  deathSprites: []
+  animFrameRate: 0.2
 --- !u!50 &6455423872854408950
 Rigidbody2D:
   serializedVersion: 4
@@ -95,14 +118,14 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4727124548059276097}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -173,25 +196,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 20
   moveSpeed: 1.5
-  damage: 2
-  attackRange: 1.2
-  skillCooldown: 5
-  knockbackForce: 0.3
-  rewardMoney: 200
-  walkRight:
-  - {fileID: -224111788, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -896304077, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -2014798077, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -1995838795, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -1306426663, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -350474450, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  walkUp:
-  - {fileID: 981026618, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -312754932, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -778907025, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 826605354, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -1278246309, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 1939692661, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  damage: 5
+  attackRange: 1.5
+  knockbackForce: 1.5
+  rewardMoney: 50
+  attackCooldown: 5
   walkDown:
   - {fileID: -2032277499, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: 804581405, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
@@ -199,24 +208,37 @@ MonoBehaviour:
   - {fileID: -1860783669, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: 1579675956, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: -1034436196, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  attackRight:
-  - {fileID: 190037787, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 1953928513, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -1675629144, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 819123888, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  attackUp:
-  - {fileID: 1999773859, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 1481768650, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 2120293985, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 419791373, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  walkUp:
+  - {fileID: 981026618, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -312754932, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -778907025, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 826605354, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -1278246309, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 1939692661, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  walkRight:
+  - {fileID: -224111788, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -896304077, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -2014798077, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -1995838795, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -1306426663, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -350474450, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   attackDown:
   - {fileID: -1235689166, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: 264984723, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: 1116904809, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
   - {fileID: 1008620346, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  deathSprites:
-  - {fileID: 1629877647, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: -1484448220, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 1262551743, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  - {fileID: 2029098361, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
-  animFrameRate: 0.2
+  attackUp:
+  - {fileID: 1999773859, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 1481768650, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 2120293985, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 419791373, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  attackRight:
+  - {fileID: 190037787, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 1953928513, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: -1675629144, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  - {fileID: 819123888, guid: 3a7ebee0ce5969243b98175bed72e70c, type: 3}
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  hitColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  hitEffectTime: 0.1
