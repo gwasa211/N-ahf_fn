@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - Enemy
+  - MoneyText
+  - HealthText
+  - GameOverUI
+  - SkeletonArrow
+  - finalMoneyText
+  - FinalMoneyText
   layers:
   - Default
   - TransparentFX
@@ -16,10 +22,10 @@ TagManager:
   - Enemy
   - Invincible
   - Wall
-  - 
-  - 
-  - 
-  - 
+  - MoneyText
+  - HealthText
+  - SkeletonArrow
+  - finalMoneyText
   - 
   - 
   - 
@@ -65,4 +71,7 @@ TagManager:
     locked: 0
   - name: "\uBC30\uACBD \uB098\uBB34"
     uniqueID: 886236167
+    locked: 0
+  - name: New Layer 9
+    uniqueID: 4268576435
     locked: 0

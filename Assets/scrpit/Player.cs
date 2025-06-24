@@ -90,12 +90,39 @@ public class Player : MonoBehaviour
     private float frameRate = 0.2f;
 
     public int currentHealth;
+    public static Player Instance { get; private set; }
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        input = Vector2.zero;  // 초기화
     }
+
+    void FixedUpdate()
+    {
+        // rb가 아직 할당되지 않았으면 다시 가져오기
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+            return;
+
+        if (!isDodging)
+        {
+            // input이 null일 수 없지만, 혹시 모를 상황 대비
+            Vector2 moveDir = (input != null) ? input : Vector2.zero;
+
+            float currentSpeed = isAttacking
+                ? swordMoveSpeed
+                : isShooting
+                    ? shootMoveSpeed
+                    : moveSpeed;
+
+            // MovePosition 호출
+            rb.MovePosition(rb.position + moveDir.normalized * currentSpeed * Time.fixedDeltaTime);
+        }
+    }
+
 
     IEnumerator Start()
     {
@@ -480,12 +507,5 @@ public class Player : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 
-    void FixedUpdate()
-    {
-        if (!isDodging)
-        {
-            float currentSpeed = isAttacking ? swordMoveSpeed : isShooting ? shootMoveSpeed : moveSpeed;
-            rb.MovePosition(rb.position + input.normalized * currentSpeed * Time.fixedDeltaTime);
-        }
-    }
+
 }

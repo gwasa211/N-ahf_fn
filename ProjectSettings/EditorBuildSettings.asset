@@ -11,4 +11,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/senec/ingame.unity
     guid: 6df5ed4f06ff31049b2a214853d71dc3
+  - enabled: 1
+    path: Assets/senec/DungeonScene.unity
+    guid: 7ff1af56506e6714086d8a3c343ec729
+  - enabled: 1
+    path: Assets/senec/DungeonScene1.unity
+    guid: 29999294c70044246a31b5bf639d23c8
+  - enabled: 1
+    path: Assets/senec/DungeonScene2.unity
+    guid: 63756a65366906f4697b39d6a8116658
+  - enabled: 1
+    path: Assets/senec/DungeonScene3.unity
+    guid: 823e01741f49f7a4cb241aeab3b2dcc5
+  - enabled: 1
+    path: Assets/senec/Bootstrap.unity
+    guid: 4f6cd032affca4847822467ffe157841
   m_configObjects: {}

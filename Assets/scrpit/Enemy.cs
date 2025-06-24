@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D), typeof(SpriteRenderer))]
@@ -7,11 +8,11 @@ public class Enemy : MonoBehaviour
     [Header("Stats")]
     public int maxHealth = 10;
     public float moveSpeed = 2f;
-    public int damage = 1;                    // 플레이어에게 입힐 데미지
+    public int damage = 1;
     public float knockbackDistance = 0.3f;
     public Color hitColor = new Color(0.6f, 0.6f, 0.6f);
     public float hitEffectTime = 0.1f;
-    public float attackCooldown = 1f;         // 공격 간 딜레이
+    public float attackCooldown = 1f;
 
     [Header("Animation")]
     public Sprite[] walkSprites;
@@ -19,7 +20,7 @@ public class Enemy : MonoBehaviour
     public float animFrameRate = 0.2f;
 
     [Header("References")]
-    public Transform target;                  // 자동 할당: GameManager.Instance.player
+    public Transform target;
 
     private int currentHealth;
     private Rigidbody2D rb;
@@ -41,8 +42,8 @@ public class Enemy : MonoBehaviour
         rb.freezeRotation = true;
         currentHealth = maxHealth;
 
-        // Collider를 Non-Trigger로 사용
-        GetComponent<Collider2D>().isTrigger = false;
+        var col = GetComponent<Collider2D>();
+        col.isTrigger = false;
     }
 
     void Start()
@@ -60,7 +61,6 @@ public class Enemy : MonoBehaviour
         if (!isAlive) return;
         attackTimer += Time.deltaTime;
 
-        // 걷기 애니메이션
         if (!isHit && currentAnim.Length > 0)
         {
             animTimer += Time.deltaTime;
@@ -82,25 +82,21 @@ public class Enemy : MonoBehaviour
         sr.flipX = dir.x < 0;
     }
 
-    // Non-Trigger 충돌 감지
     void OnCollisionEnter2D(Collision2D col)
     {
-        if (!isAlive) return;
+        if (!isAlive || attackTimer < attackCooldown) return;
 
-        // 플레이어와 부딪힐 때
-        if (col.collider.CompareTag("Player") && attackTimer >= attackCooldown)
+        if (col.collider.CompareTag("Player"))
         {
             attackTimer = 0f;
             if (col.collider.TryGetComponent<Player>(out var player))
             {
-                // 넉백 방향: 적→플레이어
-                Vector2 knockbackDir = (player.transform.position - transform.position).normalized;
-                player.TakeDamage(damage, knockbackDir * knockbackDistance);
+                Vector2 kb = (player.transform.position - transform.position).normalized * knockbackDistance;
+                player.TakeDamage(damage, kb);
             }
         }
     }
 
-    // 외부에서 받은 피해
     public void TakeDamage(int amount, Vector2 knockbackDir)
     {
         if (!isAlive) return;
@@ -119,7 +115,10 @@ public class Enemy : MonoBehaviour
 
     IEnumerator PlayDeathAnimation()
     {
-        GameManager.Instance?.player?.Heal(2);
+        // DungeonScene3 에선 회복 생략
+        if (SceneManager.GetActiveScene().name != "DungeonScene3")
+            GameManager.Instance?.player?.Heal(2);
+
         GameManager.Instance?.AddMoney(rewardMoney);
 
         isHit = true;
