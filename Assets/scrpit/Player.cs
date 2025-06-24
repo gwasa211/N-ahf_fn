@@ -346,6 +346,22 @@ public class Player : MonoBehaviour
     }
 
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // SkeletonArcher가 쏜 화살 태그 검사
+        if (other.CompareTag("SkeletonArrow"))
+        {
+            // 데미지 값은 필요에 따라 고정하거나, 
+            // arrow prefab마다 스크립트로 값을 저장해두고 GetComponent로 가져와도 됩니다.
+            int arrowDamage = 1;
+            float knockbackForce = 1.5f;
+
+            Vector2 kbDir = (transform.position - other.transform.position).normalized;
+            TakeDamage(arrowDamage, kbDir * knockbackForce);
+
+            Destroy(other.gameObject);
+        }
+    }
 
 
     void HideFanVisualizer()
