@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,21 +6,50 @@ public class ChunkManager : MonoBehaviour
 {
     public Transform player;
     public GameObject chunkPrefab;
+    public GameObject enemyPrefab;
+
     public int chunkSize = 16;
-    public int viewDistance = 2;
 
     private Dictionary<Vector2Int, GameObject> chunks = new Dictionary<Vector2Int, GameObject>();
+    private Vector2Int lastPlayerChunk = new Vector2Int(int.MinValue, int.MinValue);
+
+    [Header("스폰 설정")]
+    public int spawnCount = 18;
+    public float spawnInterval = 3f;
+
+    void Start()
+    {
+        StartCoroutine(SpawnLoop());
+    }
 
     void Update()
     {
         Vector2Int currentChunk = WorldToChunkCoord(player.position);
+
+        if (currentChunk != lastPlayerChunk)
+        {
+            UpdateChunks(currentChunk);
+            lastPlayerChunk = currentChunk;
+        }
+    }
+
+    Vector2Int WorldToChunkCoord(Vector3 pos)
+    {
+        return new Vector2Int(
+            Mathf.FloorToInt(pos.x / chunkSize),
+            Mathf.FloorToInt(pos.y / chunkSize)
+        );
+    }
+
+    void UpdateChunks(Vector2Int centerChunk)
+    {
         HashSet<Vector2Int> needed = new HashSet<Vector2Int>();
 
-        for (int x = -viewDistance; x <= viewDistance; x++)
+        for (int x = -1; x <= 1; x++)
         {
-            for (int y = -viewDistance; y <= viewDistance; y++)
+            for (int y = -1; y <= 1; y++)
             {
-                Vector2Int coord = currentChunk + new Vector2Int(x, y);
+                Vector2Int coord = centerChunk + new Vector2Int(x, y);
                 needed.Add(coord);
 
                 if (!chunks.ContainsKey(coord))
@@ -27,7 +57,7 @@ public class ChunkManager : MonoBehaviour
                     Vector3 spawnPos = new Vector3(coord.x * chunkSize, coord.y * chunkSize, 0);
                     GameObject chunk = Instantiate(chunkPrefab, spawnPos, Quaternion.identity);
                     chunk.name = $"Chunk {coord.x},{coord.y}";
-                    chunk.GetComponent<Chunk>().Generate(coord); // 좌표 기반 지형 생성
+                    chunk.GetComponent<Chunk>().Generate(coord);
                     chunks.Add(coord, chunk);
                 }
             }
@@ -50,11 +80,52 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
-    Vector2Int WorldToChunkCoord(Vector3 pos)
+    // =====================
+    // 랜덤 스폰 기능
+    // =====================
+    IEnumerator SpawnLoop()
     {
-        return new Vector2Int(
-            Mathf.FloorToInt(pos.x / chunkSize),
-            Mathf.FloorToInt(pos.y / chunkSize)
-        );
+        while (true)
+        {
+            yield return new WaitForSeconds(spawnInterval);
+            SpawnInVisibleChunks();
+        }
+    }
+
+    void SpawnInVisibleChunks()
+    {
+        List<Vector3> candidatePositions = new List<Vector3>();
+
+        foreach (var kvp in chunks)
+        {
+            GameObject chunk = kvp.Value;
+            Vector3 chunkPos = chunk.transform.position;
+
+            for (int x = 0; x < chunkSize; x++)
+            {
+                for (int y = 0; y < chunkSize; y++)
+                {
+                    Vector3 pos = chunkPos + new Vector3(x, y, 0);
+                    candidatePositions.Add(pos);
+                }
+            }
+        }
+
+        Shuffle(candidatePositions);
+
+        int spawnTotal = Mathf.Min(spawnCount, candidatePositions.Count);
+        for (int i = 0; i < spawnTotal; i++)
+        {
+            Instantiate(enemyPrefab, candidatePositions[i], Quaternion.identity);
+        }
+    }
+
+    void Shuffle<T>(List<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
     }
 }

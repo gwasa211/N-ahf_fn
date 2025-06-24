@@ -1,16 +1,19 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Chunk : MonoBehaviour
 {
-    public int tileSize = 1;
-    public GameObject grassTile;
-    public GameObject waterTile;
+    public int chunkSize = 50;
+    public Tilemap tilemap;
+    public TileBase grassTile;
+    public TileBase waterTile;
 
     public void Generate(Vector2Int chunkCoord)
     {
-        int chunkSize = 16;
         float scale = 10f;
         float seed = 1000f;
+
+        tilemap.ClearAllTiles();
 
         for (int x = 0; x < chunkSize; x++)
         {
@@ -20,10 +23,10 @@ public class Chunk : MonoBehaviour
                 float noiseY = (chunkCoord.y * chunkSize + y) / scale + seed;
                 float noise = Mathf.PerlinNoise(noiseX, noiseY);
 
-                Vector3 pos = transform.position + new Vector3(x * tileSize, y * tileSize, 0);
+                Vector3Int tilePos = new Vector3Int(x, y, 0);
+                TileBase tile = (noise > 0.5f) ? grassTile : waterTile;
 
-                GameObject tileToSpawn = (noise > 0.5f) ? grassTile : waterTile;
-                Instantiate(tileToSpawn, pos, Quaternion.identity, transform);
+                tilemap.SetTile(tilePos, tile);
             }
         }
     }
