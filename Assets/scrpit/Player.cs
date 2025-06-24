@@ -93,13 +93,17 @@ public class Player : MonoBehaviour
 
     IEnumerator Start()
     {
+        // GameManager 생성될 때까지 대기
         while (GameManager.Instance == null)
             yield return null;
 
-        RecalculateStats();
-        currentHealth = maxHealth;
-        GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
+        // GameManager에 자기 등록
+        GameManager.Instance.RegisterPlayer(this);
+
+        // 저장 데이터 불러오기
+        SaveSystem.LoadPlayer(this);
     }
+
 
 
     public void ApplyUpgrade(StatType stat, float amount)

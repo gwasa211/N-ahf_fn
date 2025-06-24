@@ -1,13 +1,25 @@
-using UnityEngine;
+ï»¿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Bootstrapper : MonoBehaviour
 {
-    void Awake()
+    private static bool hasLoadedGame = false;
+
+    void Start()
     {
-        if (GameManager.Instance == null)
+        if (!hasLoadedGame)
         {
-            GameObject gm = Instantiate(Resources.Load<GameObject>("GameManager"));
-            gm.name = "GameManager"; // (Optional) ÀÌ¸§¿¡¼­ "(Clone)" Á¦°Å
+            hasLoadedGame = true; // ì”¬ í•œ ë²ˆë§Œ ë¡œë“œí•˜ë„ë¡ ì„¤ì •
+
+            Debug.Log("âœ… Bootstrapper Start - ì”¬ ì „í™˜ ì‹œë„");
+
+            if (GameManager.Instance == null)
+            {
+                GameObject gm = Instantiate(Resources.Load<GameObject>("GameManager"));
+                gm.name = "GameManager";
+            }
+
+            SceneManager.LoadScene("senec/ingame", LoadSceneMode.Single);
         }
     }
 }

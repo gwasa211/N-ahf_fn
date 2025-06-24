@@ -19,8 +19,6 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        Debug.Log("GameManager Awake 호출됨");
-
         if (Instance == null)
         {
             Instance = this;
@@ -28,45 +26,20 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("중복 GameManager 발견 -> 삭제");
             Destroy(gameObject);
             return;
         }
-
-        Debug.Log("GameManager: Awake");
     }
-
 
     void Start()
     {
         UpdateMoneyUI();
     }
 
-    void OnEnable()
+    public void RegisterPlayer(Player newPlayer)
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        player = FindObjectOfType<Player>();
-
-        if (player != null)
-        {
-            SaveSystem.LoadPlayer(player);
-        }
-
-        // UI도 다시 찾기 (씬마다 다르니까)
-        moneyText = GameObject.FindWithTag("MoneyText")?.GetComponent<TextMeshProUGUI>();
-        healthText = GameObject.FindWithTag("HealthText")?.GetComponent<TextMeshProUGUI>();
-
-        UpdateMoneyUI();
-        UpdateHealthUI(player?.currentHealth ?? 0, player?.maxHealth ?? 0);
+        player = newPlayer;
+        UpdateHealthUI(player.currentHealth, player.maxHealth);
     }
 
     public void AddMoney(int amount)
@@ -92,16 +65,12 @@ public class GameManager : MonoBehaviour
     {
         if (moneyText != null)
             moneyText.text = $"현재 돈 : {currentMoney}";
-        else
-            Debug.LogWarning("moneyText가 연결되지 않았습니다.");
     }
 
     public void UpdateHealthUI(int currentHp, int maxHp)
     {
         if (healthText != null)
             healthText.text = $"HP: {currentHp} / {maxHp}";
-        else
-            Debug.LogWarning("healthText가 연결되지 않았습니다.");
     }
 
     public void PlayerDied()
@@ -117,15 +86,55 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
         SaveSystem.SavePlayer(player);
         SceneManager.LoadScene("MainMenu");
     }
-
-    void OnDestroy()
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.LogWarning("GameManager 파괴됨!");
+        SceneManager.SetActiveScene(scene);
+        Debug.Log("현재 활성 씬: " + SceneManager.GetActiveScene().name);
+        SceneManager.SetActiveScene(scene); // 이거 없으면 안 움직여요!
+
+        player = FindObjectOfType<Player>();
+        if (player != null)
+            SaveSystem.LoadPlayer(player);
+
+        moneyText = GameObject.FindWithTag("MoneyText")?.GetComponent<TextMeshProUGUI>();
+        healthText = GameObject.FindWithTag("HealthText")?.GetComponent<TextMeshProUGUI>();
+        GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.CompareTag("GameOverUI"))
+            {
+                gameOverUI = obj;
+                break;
+            }
+        }
+
+        if (gameOverUI != null)
+        {
+            gameOverUI.SetActive(false); // 시작할 때 꺼주기
+        }
+        else
+        {
+            Debug.LogWarning("GameOverUI 오브젝트를 찾지 못했습니다.");
+        }
+
+        UpdateMoneyUI();
+        UpdateHealthUI(player?.currentHealth ?? 0, player?.maxHealth ?? 0);
     }
+
 }
