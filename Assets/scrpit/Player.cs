@@ -2,6 +2,7 @@
 using System.Collections;
 using Unity.Burst.CompilerServices;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 
 
@@ -90,14 +91,65 @@ public class Player : MonoBehaviour
     private float frameRate = 0.2f;
 
     public int currentHealth;
+
+
+
+    private static readonly string[] allowedScenes = new[]
+{
+        "ingame",
+        "MainMenu",
+        "DungeonScene",
+        "DungeonScene1",
+        "DungeonScene2",
+        "DungeonScene3"
+    };
+
+
     public static Player Instance { get; private set; }
 
     void Awake()
     {
+        // 1) 허용된 씬인지 체크
+        string cur = SceneManager.GetActiveScene().name;
+        bool isAllowed = false;
+        foreach (var s in allowedScenes)
+        {
+            if (s == cur)
+            {
+                isAllowed = true;
+                break;
+            }
+        }
+        if (!isAllowed)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // 2) 싱글톤 중복 방지
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
+        // **절대** 여기서 DontDestroyOnLoad 호출 금지!
+        // → 씬 전환 시 에디터에 배치된 Player가 새로 Awake() 됩니다.
+
+        // 3) 기존 초기화 로직
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        input = Vector2.zero;  // 초기화
+        input = Vector2.zero;
     }
+
+  
+void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
 
     void FixedUpdate()
     {
@@ -126,18 +178,18 @@ public class Player : MonoBehaviour
 
     IEnumerator Start()
     {
+        // GameManager가 준비될 때까지 대기
         while (GameManager.Instance == null)
             yield return null;
 
+        // 플레이어 등록 및 저장 데이터 로드
         GameManager.Instance.RegisterPlayer(this);
         SaveSystem.LoadPlayer(this);
 
-        // ✅ 무조건 체력 가득 채우기
+        // 체력 UI 초기화
         currentHealth = maxHealth;
         GameManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
     }
-
-
 
     public void ApplyUpgrade(StatType stat, float amount)
     {

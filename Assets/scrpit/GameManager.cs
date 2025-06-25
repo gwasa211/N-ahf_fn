@@ -24,6 +24,9 @@ public class GameManager : MonoBehaviour
     // 작물 상태 저장용
     public Dictionary<string, int> cropStages = new Dictionary<string, int>();
 
+    [Header("플레이용 씬 이름")]
+    public string gameplaySceneName = "senec/ingame";
+
     void Awake()
     {
         if (Instance == null)
@@ -74,7 +77,6 @@ public class GameManager : MonoBehaviour
                     finalMoneyText = tmp;
             gameOverUI.SetActive(false);
         }
-        else Debug.LogWarning("GameOverUI 태그를 찾을 수 없습니다.");
 
         // --- 2) 돈/체력 UI 자동 연결 ---
         moneyText = null;
@@ -85,34 +87,35 @@ public class GameManager : MonoBehaviour
             if (tmp.CompareTag("HealthText")) healthText = tmp;
         }
 
-        // --- 3) 새로 로드된 씬 내부에서만 Player 찾기 ---
-        player = null;
-        if (scene.isLoaded)
+        // --- 3) 플레이용 씬이 아닐 땐 여기까지 하고 리턴 ---
+        if (scene.name != gameplaySceneName)
         {
-            foreach (var root in scene.GetRootGameObjects())
+            // UI만 갱신
+            UpdateMoneyUI();
+            UpdateHealthUI(player?.currentHealth ?? 0, player?.maxHealth ?? 0);
+            return;
+        }
+
+        // --- 4) 플레이용 씬에서만 Player 찾고 로드 ---
+        player = null;
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            if (root.CompareTag("Player"))
             {
-                if (root.CompareTag("Player"))
-                {
-                    player = root.GetComponent<Player>();
-                    break;
-                }
+                player = root.GetComponent<Player>();
+                break;
             }
         }
-        if (player == null)
+        if (player != null)
         {
-            Debug.LogWarning($"씬 '{scene.name}'에서 Player를 찾지 못했습니다.");
-        }
-        else
-        {
-            // 저장 데이터 로드
             SaveSystem.LoadPlayer(player);
         }
 
-        // --- 4) UI 초기 업데이트 ---
+        // --- 5) UI 초기 업데이트 ---
         UpdateMoneyUI();
         UpdateHealthUI(player?.currentHealth ?? 0, player?.maxHealth ?? 0);
 
-        // --- 5) 작물 상태 복원 ---
+        // --- 6) 작물 상태 복원 ---
         foreach (var crop in GameObject.FindObjectsOfType<CropVisual>())
         {
             int stage = GetCropStage(crop.cropID);

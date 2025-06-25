@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 public class Bootstrapper : MonoBehaviour
 {
     private static bool hasBootstrapped = false;
+    private static bool hasCreatedGameMgr = false;
 
     [Header("부트스트랩 전용 씬")]
     public string bootstrapSceneName = "BootstrapScene";
@@ -25,7 +26,8 @@ public class Bootstrapper : MonoBehaviour
 
     void Awake()
     {
-        // 씬이 바뀔 때마다 GameManager 확인/생성
+
+
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -38,16 +40,13 @@ public class Bootstrapper : MonoBehaviour
     {
         string current = SceneManager.GetActiveScene().name;
 
-        // 1) 부트스트랩 씬에서만 씬 전환 실행
+        // 부트스트랩 씬에서만 최초 실행
         if (current == bootstrapSceneName && !hasBootstrapped)
         {
             hasBootstrapped = true;
             Debug.Log("✅ Bootstrapper: 부트스트랩 씬, 게임 시작");
 
-            // GameManager 생성
-            TryCreateGameManager();
-
-            // 플레이용 씬으로 이동
+            CreateGameManagerIfNeeded();
             SceneManager.LoadScene(gameplaySceneName, LoadSceneMode.Single);
         }
     }
@@ -56,15 +55,18 @@ public class Bootstrapper : MonoBehaviour
     {
         string name = scene.name;
 
-        // 2) 던전 씬이거나 플레이용 씬이면 GameManager 보장
-        if (name == gameplaySceneName || System.Array.IndexOf(dungeonScenes, name) >= 0)
+        // 플레이용 씬에 진입했을 때 한 번만 GameManager 보장
+        if (name == gameplaySceneName)
         {
-            TryCreateGameManager();
+            CreateGameManagerIfNeeded();
         }
+        // **던전 씬에서는 절대 생성하지 않음**
     }
 
-    void TryCreateGameManager()
+    void CreateGameManagerIfNeeded()
     {
+        if (hasCreatedGameMgr) return;
+
         if (GameManager.Instance == null)
         {
             var prefab = Resources.Load<GameObject>(gameManagerPath);
@@ -80,5 +82,6 @@ public class Bootstrapper : MonoBehaviour
                 Debug.LogError($"Resources/{gameManagerPath} 프리팹을 찾을 수 없습니다!");
             }
         }
+        hasCreatedGameMgr = true;
     }
 }
